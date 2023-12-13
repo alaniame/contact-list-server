@@ -1,4 +1,4 @@
-module first_project
+module github.com/alaniame/contact-list-server
 
 go 1.21
 
