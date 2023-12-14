@@ -2,10 +2,14 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4"
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 )
 
 func initHandler(db *pgx.Conn) http.Handler {
@@ -38,7 +42,15 @@ func initHandler(db *pgx.Conn) http.Handler {
 }
 
 func main() {
-	dbURL := "postgres://admin:admin@localhost:5432/contacts"
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	dbLogin := os.Getenv("POSTGRES_USER")
+	dbPassword := os.Getenv("POSTGRES_PASSWORD")
+	dbName := os.Getenv("POSTGRES_DB")
+	hostPort := strings.Split(os.Getenv("POSTGRES_PORT"), ":")[0]
+	dbURL := fmt.Sprintf("postgres://%s:%s@localhost:%s/%s", dbLogin, dbPassword, hostPort, dbName)
 	conn, connectErr := pgx.Connect(context.Background(), dbURL)
 	if connectErr != nil {
 		log.Fatalf("Ошибка соединения с базой: %v\n", connectErr)
