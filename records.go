@@ -17,14 +17,14 @@ type Record struct {
 
 func Insert(db *pgx.Conn, w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Некорректные данные"))
 		return
 	}
 	name := r.FormValue("name")
 	phone := r.FormValue("phone")
 	if name == "" || phone == "" {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Имя и телефон не могут быть пустыми"))
 		return
 	}
@@ -35,18 +35,18 @@ func Insert(db *pgx.Conn, w http.ResponseWriter, r *http.Request) {
 	insertSQL := `INSERT INTO contact_book (name, phone) VALUES ($1, $2);`
 	_, err := db.Exec(context.Background(), insertSQL, record.Name, record.Phone)
 	if err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Ошибка при добавлении записи в бд"))
 		return
 	}
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
 
 func SelectAll(db *pgx.Conn, w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query(context.Background(),
 		"SELECT name, phone FROM contact_book")
 	if err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Ошибка при чтении данных"))
 		return
 	}
@@ -56,7 +56,7 @@ func SelectAll(db *pgx.Conn, w http.ResponseWriter, r *http.Request) {
 		var rec Record
 		err := rows.Scan(&rec.Name, &rec.Phone)
 		if err != nil {
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Ошибка при чтении данных"))
 			return
 		}
@@ -64,13 +64,13 @@ func SelectAll(db *pgx.Conn, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(contacts) == 0 {
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("Список контактов пуст"))
 		return
 	}
 
 	if err := rows.Err(); err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Ошибка при обработке результатов"))
 		return
 	}
@@ -83,7 +83,7 @@ func SelectAll(db *pgx.Conn, w http.ResponseWriter, r *http.Request) {
 func Select(db *pgx.Conn, w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 	if name == "" {
-		w.WriteHeader(400)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Параметр 'name' отсутствует"))
 		return
 	}
@@ -93,7 +93,7 @@ func Select(db *pgx.Conn, w http.ResponseWriter, r *http.Request) {
 	var rec Record
 	err := row.Scan(&rec.Name, &rec.Phone)
 	if errors.Is(err, pgx.ErrNoRows) {
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("Имя не найдено"))
 		return
 	}
@@ -103,14 +103,14 @@ func Select(db *pgx.Conn, w http.ResponseWriter, r *http.Request) {
 
 func Update(db *pgx.Conn, w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Некорректные данные"))
 		return
 	}
 	name := r.FormValue("name")
 	phone := r.FormValue("phone")
 	if name == "" || phone == "" {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Имя и телефон не могут быть пустыми"))
 		return
 	}
@@ -121,36 +121,36 @@ func Update(db *pgx.Conn, w http.ResponseWriter, r *http.Request) {
 	updateSQL := `UPDATE contact_book SET name = $1, phone = $2	WHERE name = $1;`
 	commandTag, err := db.Exec(context.Background(), updateSQL, record.Name, record.Phone)
 	if err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Ошибка при изменении записи в бд"))
 		return
 	}
 	if commandTag.RowsAffected() == 0 {
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("Запись не найдена"))
 		return
 	}
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
 
 func Delete(db *pgx.Conn, w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 	if name == "" {
-		w.WriteHeader(400)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Параметр 'name' отсутствует"))
 		return
 	}
 	deleteSQL := `DELETE FROM contact_book WHERE name = $1;`
 	commandTag, err := db.Exec(context.Background(), deleteSQL, name)
 	if err != nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("Ошибка при изменении записи в бд"))
 		return
 	}
 	if commandTag.RowsAffected() == 0 {
-		w.WriteHeader(404)
+		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("Запись не найдена"))
 		return
 	}
-	w.WriteHeader(200)
+	w.WriteHeader(http.StatusOK)
 }
