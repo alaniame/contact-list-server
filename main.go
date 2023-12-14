@@ -44,7 +44,7 @@ func initHandler(db *pgx.Conn) http.Handler {
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("Ошибка загрузки .env файла")
 	}
 	dbLogin := os.Getenv("POSTGRES_USER")
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
