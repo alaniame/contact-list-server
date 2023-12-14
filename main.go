@@ -17,27 +17,27 @@ func initHandler(db *pgx.Conn) http.Handler {
 	r.HandleFunc("/contacts",
 		func(w http.ResponseWriter, r *http.Request) {
 			SelectAll(db, w, r)
-		}).Methods("GET")
+		}).Methods(http.MethodGet)
 
 	r.HandleFunc("/contact",
 		func(w http.ResponseWriter, r *http.Request) {
 			Select(db, w, r)
-		}).Methods("GET")
+		}).Methods(http.MethodGet)
 
 	r.HandleFunc("/contact",
 		func(w http.ResponseWriter, r *http.Request) {
 			Insert(db, w, r)
-		}).Methods("POST")
+		}).Methods(http.MethodPost)
 
 	r.HandleFunc("/contact",
 		func(w http.ResponseWriter, r *http.Request) {
 			Delete(db, w, r)
-		}).Methods("DELETE")
+		}).Methods(http.MethodDelete)
 
 	r.HandleFunc("/contact",
 		func(w http.ResponseWriter, r *http.Request) {
 			Update(db, w, r)
-		}).Methods("PUT")
+		}).Methods(http.MethodPut)
 	return r
 }
 
